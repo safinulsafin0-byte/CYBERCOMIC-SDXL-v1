@@ -5,7 +5,8 @@ import torch
 import peft.import_utils
 from diffusers import StableDiffusionXLPipeline, AutoencoderKL
 
-# পুরনো torchao থাকলে ক্র্যাশ এড়ানোর সেফটি প্যাচ
+# Windows symlink ওয়ার্নিং বন্ধ এবং পুরনো torchao থাকলে ক্র্যাশ এড়ানোর সেফটি প্যাচ
+os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 peft.import_utils.is_torchao_available = lambda: False
 
 DEFAULT_NEG = (
@@ -29,7 +30,7 @@ def load_pipeline(offline: bool = False):
         "stabilityai/stable-diffusion-xl-base-1.0",
         vae=vae,
         torch_dtype=dtype,
-        variant="fp16" if device == "cuda" else None,
+        variant="fp16",
         use_safetensors=True,
         local_files_only=offline,
     ).to(device)
