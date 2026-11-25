@@ -5,7 +5,6 @@ import torch
 import peft.import_utils
 from diffusers import StableDiffusionXLPipeline, AutoencoderKL
 
-# Windows symlink ওয়ার্নিং বন্ধ এবং পুরনো torchao থাকলে ক্র্যাশ এড়ানোর সেফটি প্যাচ
 os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS_WARNING", "1")
 peft.import_utils.is_torchao_available = lambda: False
 
@@ -17,7 +16,7 @@ DEFAULT_NEG = (
 
 def load_pipeline(offline: bool = False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    dtype = torch.float16 if device == "cuda" else torch.float32
+    dtype = torch.float16 if device == "cuda" else torch.bfloat16
 
     print(f"[CYBERCOMIC] Loading model on {device.upper()} ({dtype})...")
 
@@ -32,10 +31,12 @@ def load_pipeline(offline: bool = False):
         torch_dtype=dtype,
         variant="fp16",
         use_safetensors=True,
+        low_cpu_mem_usage=True,
         local_files_only=offline,
     ).to(device)
 
     pipe.enable_attention_slicing()
+    pipe.vae.enable_slicing()
     pipe.load_lora_weights(
         "Safinul/CYBERCOMIC-SDXL-v1",
         weight_name="cybercomic_sdxl_v1.safetensors",
